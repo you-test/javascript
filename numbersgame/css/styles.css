@@ -7,7 +7,7 @@ body {
 }
 
 #container {
-  width: 120px;
+  /* 50px * 2 + 10px * 2 */
   margin: 16px auto;
 }
 
