@@ -1,9 +1,43 @@
 'use strict';
 
 (() => {
-  class Maze {
+  class MazeRenderer {
     constructor(canvas) {
       this.ctx = canvas.getContext('2d');
+      this.WALL_SIZE = 10;
+    }
+
+    render(data) {
+      canvas.height = data.length * this.WALL_SIZE;
+      canvas.width = data[0].length * this.WALL_SIZE;
+
+      for (let row = 0; row < data.length; row++) {
+        for (let col = 0; col < data[0].length; col++) {
+          // データが１のときに描画処理がなされるようにする（塗りつぶされる）
+          if (data[row][col] === 1) {
+            this.ctx.fillRect(
+              col * this.WALL_SIZE,
+              row * this.WALL_SIZE,
+              this.WALL_SIZE,
+              this.WALL_SIZE
+            );
+          }
+        }
+      }
+    }
+  }
+
+  class Maze {
+    constructor(row, col, renderer) {
+      //今回の迷路のアルゴリズムの条件
+      if (row < 5 || col < 5 || row % 2 === 0 || col % 2 === 0) {
+        alert('Size not valid!');
+        return;
+      }
+
+      this.renderer = renderer;
+      this.row = row;
+      this.col = col;
       this.data = this.getData();
     }
 
@@ -11,36 +45,38 @@
       const data = [];
 
       //全て塗りつぶすデータ
-      for (let row = 0; row < 9; row++) {
+      for (let row = 0; row < this.row; row++) {
         data[row] = [];
-        for (let col = 0; col < 7; col++) {
+        for (let col = 0; col < this.col; col++) {
           data[row][col] = 1;
         }
       }
 
       //外壁を壁にする
-      for (let row = 1; row < 9 - 1; row++) {
-        for (let col = 1; col < 7 - 1; col++) {
+      for (let row = 1; row < this.row - 1; row++) {
+        for (let col = 1; col < this.col - 1; col++) {
           data[row][col] = 0;
         }
       }
 
       //格子状の描画
-      for (let row = 2; row < 9 - 2; row += 2) {
-        for (let col = 2; col < 7 - 2; col += 2) {
+      for (let row = 2; row < this.row - 2; row += 2) {
+        for (let col = 2; col < this.col - 2; col += 2) {
           data[row][col] = 1;
         }
       }
 
       //棒をたおす
-      for (let row = 2; row < 9 - 2; row += 2) {
-        for (let col = 2; col < 7 - 2; col += 2) {
+      for (let row = 2; row < this.row - 2; row += 2) {
+        for (let col = 2; col < this.col - 2; col += 2) {
           let destRow;
           let destCol;
 
           //その座標に隣接する場所が壁である場合は今いる位置を塗りつぶす
           do {
-            const dir = Math.floor(Math.random() * 4);
+            const dir = row === 2 ?
+              Math.floor(Math.random() * 4) :
+              Math.floor(Math.random() * 3) + 1; //1-3の整数値（上以外に倒す）
             switch(dir) {
               case 0: //up
                 destRow = row - 1;
@@ -69,15 +105,7 @@
     }
 
     render() {
-      for (let row = 0; row < this.data.length; row++) {
-        for (let col = 0; col < this.data[row].length; col++) {
-          // データが１のときに描画処理がなされるようにする（塗りつぶされる）
-          if (this.data[row][col] === 1) {
-            this.ctx.fillRect(col * 10, row * 10, 10, 10);
-
-          }
-        }
-      }
+      this.renderer.render(this.data);
     }
   }
 
@@ -87,7 +115,7 @@
   }
 
   //Mazeクラスのインスタンス(描画処理できるよう引数にcanvasを渡しておく)
-  const maze = new Maze(canvas);
+  const maze = new Maze(21, 15, new MazeRenderer(canvas));
   maze.render();
 })();
 
